@@ -737,7 +737,7 @@ function buildBkMatch(m, tA, tB) {
 function bkSlotHtml(desc, id) {
   if (id) {
     const t = T(id);
-    return `<span style="font-weight:600;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;display:block">${t.name}</span>`;
+    return `${getSpecimenThumb(t)}<span style="font-weight:600;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;display:inline-block;vertical-align:middle">${t.name}</span>`;
   }
   if (desc==='T3') return '<span>3ro clasif.</span>';
   if (/^[12][A-L]$/.test(desc)) return `<span>${desc[0]==='1'?'1°':'2°'} Grp ${desc[1]}</span>`;

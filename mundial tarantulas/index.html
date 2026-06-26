@@ -140,7 +140,7 @@ body{background:var(--bg);color:var(--w);font-family:'Barlow',sans-serif;min-hei
 /* ENFRENTAMIENTO: dos fotos cuadradas lado a lado */
 .bk-match{
   display:flex;flex-direction:row;align-items:stretch;
-  border-radius:7px;overflow:hidden;cursor:pointer;
+  border-radius:7px;cursor:pointer;
   border:1.5px solid rgba(255,255,255,.12);
   background:rgba(2,12,24,.7);
   transition:border-color .2s,box-shadow .2s;
@@ -603,11 +603,9 @@ function renderBracket() {
   });
 
   // DIMENSIONES EXACTAS ESTILO MUNDIAL (Imagen de referencia)
-  const CW = 1440, CH = 2440;
-  // Cajas proporcionales tipo bloque para que la foto y el texto encajen perfectamente
-  const MW = 160, MH = 80; 
-  const COL_W = 172; 
-
+ const CW = 1800, CH = 3200;
+const MW = 200, MH = 200; 
+const COL_W = 220;
   // Centros de columnas simétricos en X (Izquierda -> Centro <- Derecha)
   const colX = [
     12,                          // 16avos (Izquierda)
@@ -635,7 +633,7 @@ function renderBracket() {
   // Semi izquierda y derecha: centradas verticalmente en el canvas
   const sfY = centerY;
   // Final: debajo de las semis con separación
-  const finalY = centerY + MH + 120;
+  const finalY = centerY + MH + 80;
   // Tercer puesto: arriba de las semis con separación
   const thirdY = centerY - MH - 80;
 
@@ -791,7 +789,7 @@ function renderBracket() {
 
   // Contenedor responsivo proporcional
   const wrap = document.createElement('div');
-  wrap.style.cssText = `position:relative;width:100%;aspect-ratio:${CW}/${CH};max-width:${CW}px;margin:0 auto;`;
+  wrap.style.cssText = `position:relative;width:${CW}px;height:${CH}px;margin:0 auto;`;
   wrap.appendChild(svg);
 
   // Inserción de cajas de partidos en el canvas porcentual exacto
@@ -800,7 +798,7 @@ function renderBracket() {
     const y = fixedY !== undefined ? fixedY : rowY(rc, ri);
     const ra = resolved[m.id];
     const box = buildBkMatch(m, ra.a, ra.b);
-    box.style.cssText += `position:absolute;left:${(x/CW*100).toFixed(3)}%;top:${(y/CH*100).toFixed(3)}%;width:${(MW/CW*100).toFixed(3)}%;`;
+    box.style.cssText += `position:absolute;left:${x}px;top:${y}px;width:${MW}px;height:${MH}px;`;
     wrap.appendChild(box);
   });
 

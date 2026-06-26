@@ -538,174 +538,185 @@ function renderBracket() {
   t3cursor = 0;
   const cont = document.getElementById('bkt'); cont.innerHTML = '';
 
-  // Pre-resolve all slots
   const resolved = {};
   [...R32,...R16,...QF,...SF,FINAL,THIRD_M].forEach(m => {
     resolved[m.id] = { a: resolveSlot(m.a), b: resolveSlot(m.b) };
   });
 
-  // Left side: p74,p77,p79,p80 → p89,p92 → p97 → p101
-  // Right side: p76,p78,p80... mirrors
-  // We'll build a full visual bracket mirroring the image layout:
-  // [R32 left 8] [R16 left 4] [QF left 2] [SF left] [FINAL] [SF right] [QF right 2] [R16 right 4] [R32 right 8]
+  // Canvas dimensions
+  const CW = 1400, CH = 900;
+  const MW = 148, MH = 64; // match box width/height
+  const COL_W = 168; // column width including gap
 
-  const leftR32  = [R32[0],R32[1],R32[2],R32[3],R32[4],R32[5],R32[6],R32[7]];
-  const rightR32 = [R32[8],R32[9],R32[10],R32[11],R32[12],R32[13],R32[14],R32[15]];
-  const leftR16  = [R16[0],R16[1],R16[2],R16[3]];
-  const rightR16 = [R16[4],R16[5],R16[6],R16[7]];
-  const leftQF   = [QF[0],QF[1]];
-  const rightQF  = [QF[2],QF[3]];
-  const leftSF   = [SF[0]];
-  const rightSF  = [SF[1]];
+  // Column X centers (left side then right side)
+  // Cols: R32L, R16L, QFL, SFL, CENTER, SFR, QFR, R16R, R32R
+  const colX = [
+    10,                          // R32 left
+    10 + COL_W,                  // R16 left
+    10 + COL_W*2,                // QF left
+    10 + COL_W*3,                // SF left
+    CW/2 - MW/2,                 // FINAL center
+    CW - 10 - COL_W*3 - MW,     // SF right
+    CW - 10 - COL_W*2 - MW,     // QF right
+    CW - 10 - COL_W - MW,       // R16 right
+    CW - 10 - MW,               // R32 right
+  ];
 
-  const wrap = document.createElement('div');
-  wrap.className = 'bracket-wrap';
+  // Row distribution: 16 matches spread evenly in CH
+  // R32: 8 matches per side, spaced evenly
+  const margin = 30;
+  const usable = CH - margin*2;
 
-  const tree = document.createElement('div');
-  tree.className = 'bracket-tree';
-  tree.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:0;padding:1rem 0;';
+  function rowY(count, idx) {
+    const slot = usable / count;
+    return margin + slot * idx + slot/2 - MH/2;
+  }
 
-  // Helper: build a column of matches
-  function makeCol(matches, lbl) {
-    const colWrap = document.createElement('div');
-    colWrap.className = 'bk-col-wrap';
-    colWrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
-    if (lbl) {
-      const l = document.createElement('div');
-      l.className = 'bk-round-lbl';
-      l.textContent = lbl;
-      colWrap.appendChild(l);
+  // Match layout: [matchObj, colIndex, rowIndex, rowCount]
+  const layout = [
+    // Left R32 (col 0): matches 0-7
+    ...R32.slice(0,8).map((m,i) => [m, 0, i, 8]),
+    // Left R16 (col 1): matches 0-3
+    ...R16.slice(0,4).map((m,i) => [m, 1, i, 4]),
+    // Left QF (col 2): matches 0-1
+    ...QF.slice(0,2).map((m,i) => [m, 2, i, 2]),
+    // Left SF (col 3)
+    [SF[0], 3, 0, 1],
+    // FINAL (col 4)
+    [FINAL, 4, 0, 1],
+    // Right SF (col 5)
+    [SF[1], 5, 0, 1],
+    // Right QF (col 6): matches 0-1
+    ...QF.slice(2,4).map((m,i) => [m, 6, i, 2]),
+    // Right R16 (col 7): matches 0-3
+    ...R16.slice(4,8).map((m,i) => [m, 7, i, 4]),
+    // Right R32 (col 8): matches 0-7
+    ...R32.slice(8,16).map((m,i) => [m, 8, i, 8]),
+  ];
+
+  // Build SVG for connector lines
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`);
+  svg.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;`;
+
+  // Compute match center Y
+  function matchCY(rowCount, rowIdx) {
+    return rowY(rowCount, rowIdx) + MH/2;
+  }
+  function matchRX(colIdx) { return colX[colIdx] + MW; }
+  function matchLX(colIdx) { return colX[colIdx]; }
+
+  // Draw connector: from right edge of col A pair → left edge of col B single
+  function drawConnectors(colFrom, countFrom, colTo, countTo) {
+    const ratio = countFrom / countTo;
+    for (let ti = 0; ti < countTo; ti++) {
+      const tY = matchCY(countTo, ti);
+      const tX = matchLX(colTo);
+      const midX = (matchRX(colFrom) + matchLX(colTo)) / 2;
+      for (let fi = ti*ratio; fi < (ti+1)*ratio; fi++) {
+        const fY = matchCY(countFrom, fi);
+        const fX = matchRX(colFrom);
+        const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d', `M${fX},${fY} L${midX},${fY} L${midX},${tY} L${tX},${tY}`);
+        path.setAttribute('fill','none');
+        path.setAttribute('stroke','rgba(255,255,255,0.1)');
+        path.setAttribute('stroke-width','1.5');
+        svg.appendChild(path);
+      }
     }
-    const col = document.createElement('div');
-    col.className = 'bk-col';
-    col.style.cssText = 'display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:4px;';
-    matches.forEach(m => {
-      const ra = resolved[m.id];
-      col.appendChild(buildBkMatch(m, ra.a, ra.b));
-    });
-    colWrap.appendChild(col);
-    return colWrap;
   }
 
-  // Helper: spacer with SVG connector lines
-  function makeLines(nLeft, nRight, side) {
-    const sp = document.createElement('div');
-    sp.style.cssText = 'width:22px;flex-shrink:0;align-self:stretch;position:relative;';
-    // We'll draw lines via SVG dynamically after layout
-    sp.dataset.lines = JSON.stringify({nLeft, nRight, side});
-    return sp;
+  // Left side connectors
+  drawConnectors(0, 8, 1, 4);
+  drawConnectors(1, 4, 2, 2);
+  drawConnectors(2, 2, 3, 1);
+  drawConnectors(3, 1, 4, 1);
+  // Right side connectors (mirror: colTo is left of colFrom)
+  function drawConnectorsR(colFrom, countFrom, colTo, countTo) {
+    const ratio = countFrom / countTo;
+    for (let ti = 0; ti < countTo; ti++) {
+      const tY = matchCY(countTo, ti);
+      const tX = matchRX(colTo);
+      const midX = (matchLX(colFrom) + matchRX(colTo)) / 2;
+      for (let fi = ti*ratio; fi < (ti+1)*ratio; fi++) {
+        const fY = matchCY(countFrom, fi);
+        const fX = matchLX(colFrom);
+        const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d', `M${fX},${fY} L${midX},${fY} L${midX},${tY} L${tX},${tY}`);
+        path.setAttribute('fill','none');
+        path.setAttribute('stroke','rgba(255,255,255,0.1)');
+        path.setAttribute('stroke-width','1.5');
+        svg.appendChild(path);
+      }
+    }
   }
+  drawConnectorsR(8, 8, 7, 4);
+  drawConnectorsR(7, 4, 6, 2);
+  drawConnectorsR(6, 2, 5, 1);
+  drawConnectorsR(5, 1, 4, 1);
 
-  // Center final section
-  const centerDiv = document.createElement('div');
-  centerDiv.className = 'bk-final-center';
-  centerDiv.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:0 8px;';
-
-  const trophyLbl = document.createElement('div');
-  trophyLbl.className = 'bk-final-lbl';
-  trophyLbl.textContent = '⚽ FINAL';
-  centerDiv.appendChild(trophyLbl);
-
-  const finalBox = buildBkMatch(FINAL, resolved[FINAL.id].a, resolved[FINAL.id].b);
-  finalBox.style.width = '160px';
-  centerDiv.appendChild(finalBox);
-
-  const thirdDiv = document.createElement('div');
-  thirdDiv.className = 'bk-third';
-  const thirdLbl = document.createElement('div');
-  thirdLbl.className = 'bk-third-lbl';
-  thirdLbl.textContent = '3er Puesto';
-  thirdDiv.appendChild(thirdLbl);
-  const thirdBox = buildBkMatch(THIRD_M, resolved[THIRD_M.id].a, resolved[THIRD_M.id].b);
-  thirdBox.style.width = '160px';
-  thirdDiv.appendChild(thirdBox);
-  centerDiv.appendChild(thirdDiv);
-
-  // Assemble tree
-  tree.appendChild(makeCol(leftR32,  '16avos'));
-  tree.appendChild(makeLines(8,4,'right'));
-  tree.appendChild(makeCol(leftR16,  'Octavos'));
-  tree.appendChild(makeLines(4,2,'right'));
-  tree.appendChild(makeCol(leftQF,   'Cuartos'));
-  tree.appendChild(makeLines(2,1,'right'));
-  tree.appendChild(makeCol(leftSF,   'Semis'));
-  tree.appendChild(makeLines(1,1,'right'));
-  tree.appendChild(centerDiv);
-  tree.appendChild(makeLines(1,1,'left'));
-  tree.appendChild(makeCol(rightSF,  'Semis'));
-  tree.appendChild(makeLines(1,2,'left'));
-  tree.appendChild(makeCol(rightQF,  'Cuartos'));
-  tree.appendChild(makeLines(2,4,'left'));
-  tree.appendChild(makeCol(rightR16, 'Octavos'));
-  tree.appendChild(makeLines(4,8,'left'));
-  tree.appendChild(makeCol(rightR32, '16avos'));
-
-  wrap.appendChild(tree);
-  cont.appendChild(wrap);
-
-  // Draw connector lines after DOM is in place
-  requestAnimationFrame(() => drawBracketLines(tree));
-
-  updateChamp();
-}
-
-function drawBracketLines(tree) {
-  // For each spacer, draw SVG lines connecting pairs of matches on left to matches on right
-  const spacers = tree.querySelectorAll('[data-lines]');
-  spacers.forEach(sp => {
-    const { nLeft, nRight, side } = JSON.parse(sp.dataset.lines);
-    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;';
-    svg.setAttribute('preserveAspectRatio','none');
-    sp.style.position = 'relative';
-    sp.appendChild(svg);
-
-    const spRect = sp.getBoundingClientRect();
-    const treeRect = tree.getBoundingClientRect();
-
-    // Find sibling columns
-    const children = Array.from(tree.children);
-    const idx = children.indexOf(sp);
-    const leftCol = children[idx-1];
-    const rightCol = children[idx+1];
-    if (!leftCol || !rightCol) return;
-
-    const leftMatches = leftCol.querySelectorAll('.bk-match');
-    const rightMatches = rightCol.querySelectorAll('.bk-match');
-
-    // Each right match pairs with 2 left matches
-    const ratio = leftMatches.length / rightMatches.length;
-
-    rightMatches.forEach((rm, ri) => {
-      const rmRect = rm.getBoundingClientRect();
-      const ryMid = rmRect.top + rmRect.height/2 - spRect.top;
-      const rxFrom = side === 'right' ? spRect.width : 0;
-      const rxTo   = side === 'right' ? 0 : spRect.width;
-
-      // draw line from right match to midpoint
-      // then from midpoint to each left match
-      const lmGroup = Array.from(leftMatches).slice(ri*ratio, (ri+1)*ratio);
-      if (!lmGroup.length) return;
-
-      const midX = spRect.width / 2;
-
-      lmGroup.forEach(lm => {
-        const lmRect = lm.getBoundingClientRect();
-        const lyMid = lmRect.top + lmRect.height/2 - spRect.top;
-        const lxFrom = side === 'right' ? spRect.width : 0;
-        const lxTo   = side === 'right' ? 0 : spRect.width;
-
-        // horizontal from left match to midX
-        const path1 = document.createElementNS('http://www.w3.org/2000/svg','path');
-        const x1 = lxFrom, y1 = lyMid, xm = midX;
-        path1.setAttribute('d', `M${x1},${y1} L${xm},${y1} L${xm},${ryMid} L${rxFrom},${ryMid}`);
-        path1.setAttribute('fill','none');
-        path1.setAttribute('stroke','rgba(255,255,255,0.1)');
-        path1.setAttribute('stroke-width','1');
-        svg.appendChild(path1);
-      });
-    });
+  // Round labels
+  const lbls = [
+    [colX[0], '16avos'],
+    [colX[1], 'Octavos'],
+    [colX[2], 'Cuartos'],
+    [colX[3], 'Semifinal'],
+    [colX[4], 'FINAL'],
+    [colX[5], 'Semifinal'],
+    [colX[6], 'Cuartos'],
+    [colX[7], 'Octavos'],
+    [colX[8], '16avos'],
+  ];
+  lbls.forEach(([x, lbl]) => {
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', x + MW/2);
+    t.setAttribute('y', 16);
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('fill', lbl === 'FINAL' ? '#c9a227' : 'rgba(201,162,39,0.45)');
+    t.setAttribute('font-family','Barlow Condensed, sans-serif');
+    t.setAttribute('font-size', lbl === 'FINAL' ? '13' : '10');
+    t.setAttribute('font-weight','700');
+    t.setAttribute('letter-spacing','1.5');
+    t.textContent = lbl.toUpperCase();
+    svg.appendChild(t);
   });
+
+  // 3er puesto label
+  const tpY = rowY(1, 0) + MH + 18;
+  const tpLbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+  tpLbl.setAttribute('x', colX[4] + MW/2);
+  tpLbl.setAttribute('y', tpY - 4);
+  tpLbl.setAttribute('text-anchor','middle');
+  tpLbl.setAttribute('fill','rgba(255,255,255,0.25)');
+  tpLbl.setAttribute('font-family','Barlow Condensed, sans-serif');
+  tpLbl.setAttribute('font-size','9');
+  tpLbl.setAttribute('letter-spacing','1.5');
+  tpLbl.textContent = '3ER PUESTO';
+  svg.appendChild(tpLbl);
+
+  // Build wrapper (relative container)
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `position:relative;width:100%;aspect-ratio:${CW}/${CH};max-width:${CW}px;margin:0 auto;`;
+  wrap.appendChild(svg);
+
+  // Place match boxes
+  layout.forEach(([m, ci, ri, rc]) => {
+    const x = colX[ci];
+    const y = rowY(rc, ri);
+    const ra = resolved[m.id];
+    const box = buildBkMatch(m, ra.a, ra.b);
+    box.style.cssText += `position:absolute;left:${(x/CW*100).toFixed(3)}%;top:${(y/CH*100).toFixed(3)}%;width:${(MW/CW*100).toFixed(3)}%;`;
+    wrap.appendChild(box);
+  });
+
+  // 3er puesto
+  const tpBox = buildBkMatch(THIRD_M, resolved[THIRD_M.id].a, resolved[THIRD_M.id].b);
+  const tpX = colX[4], tpBoxY = rowY(1, 0) + MH + 28;
+  tpBox.style.cssText += `position:absolute;left:${(tpX/CW*100).toFixed(3)}%;top:${(tpBoxY/CH*100).toFixed(3)}%;width:${(MW/CW*100).toFixed(3)}%;`;
+  wrap.appendChild(tpBox);
+
+  cont.appendChild(wrap);
+  updateChamp();
 }
 
 function buildBkMatch(m, tA, tB) {
@@ -737,7 +748,7 @@ function buildBkMatch(m, tA, tB) {
 function bkSlotHtml(desc, id) {
   if (id) {
     const t = T(id);
-    return `${getSpecimenThumb(t)}<span style="font-weight:600;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;display:inline-block;vertical-align:middle">${t.name}</span>`;
+    return `${getSpecimenThumb(t)}<span style="font-weight:600;font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;display:inline-block;vertical-align:middle">${t.name}</span>`;
   }
   if (desc==='T3') return '<span>3ro clasif.</span>';
   if (/^[12][A-L]$/.test(desc)) return `<span>${desc[0]==='1'?'1°':'2°'} Grp ${desc[1]}</span>`;

@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simulador de Tarántulas 2026 - Profesional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#020C18; --gold:#C9A227; --gl:#F5D26B; --gd:#9A7A1A;
+  --blue:#1E8FE1; --w:#fff; --card:rgba(255,255,255,.04); --brd:rgba(255,255,255,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--w);font-family:'Barlow',sans-serif;min-height:100vh}
+
+.tabs{display:flex;justify-content:center;gap:.7rem;padding:1rem;position:sticky;top:0;z-index:100;background:rgba(2,12,24,.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd)}
+.tab{font-family:'Barlow Condensed',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.45rem 1.2rem;border-radius:18px;cursor:pointer;border:1.5px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.4);transition:all .2s}
+.tab:hover{color:var(--w);border-color:rgba(255,255,255,.3)}
+.tab.active{background:linear-gradient(135deg,var(--gold),var(--gd));color:var(--bg);border-color:transparent}
+
+.sec{display:none;padding:1.4rem 1rem 4rem}
+.sec.vis{display:block}
+.ptitle{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.7rem,5vw,3.8rem);letter-spacing:.04em;background:linear-gradient(135deg,#F5D26B,#C9A227,#9A7A1A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:.25rem}
+.psub{text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:.75rem;color:rgba(255,255,255,.32);letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.6rem}
+
+.actions-bar{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:1.5rem;background:rgba(255,255,255,0.02);padding:0.6rem;border-radius:8px;border:1px solid var(--brd)}
+.btn-action{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;text-transform:uppercase;padding:.4rem 1rem;border-radius:6px;cursor:pointer;border:1px solid var(--gold);background:rgba(201,162,39,0.1);color:var(--gl);transition:all 0.2s}
+.btn-action:hover{background:var(--gold);color:var(--bg)}
+.btn-rand{border-color:var(--blue);background:rgba(30,143,225,0.1);color:#9ee}
+.btn-rand:hover{background:var(--blue);color:var(--w)}
+.btn-reset{border-color:rgba(255,80,80,0.4);background:rgba(255,80,80,0.05);color:#ff9999}
+.btn-reset:hover{background:rgb(255,80,80);color:var(--bg)}
+.btn-sub-action{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);background:transparent}
+.btn-sub-action:hover{border-color:var(--gold);color:var(--gl)}
+.btn-mini-capt{font-size:0.58rem;font-weight:700;text-transform:uppercase;padding:0.15rem 0.4rem;border-radius:4px;border:1px solid rgba(251,210,107,0.3);background:rgba(2,12,24,0.6);color:var(--gl);cursor:pointer;margin-left:auto}
+.btn-mini-capt:hover{background:var(--gold);color:var(--bg)}
+
+/* GROUPS */
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:.9rem}
+.gcard{background:var(--card);border:1px solid var(--brd);border-radius:10px;overflow:hidden;transition:border-color .2s}
+.gcard:hover{border-color:rgba(201,162,39,.2)}
+.ghdr{background:linear-gradient(135deg,rgba(201,162,39,.12),rgba(201,162,39,.04));border-bottom:1px solid rgba(201,162,39,.14);padding:.45rem .85rem;display:flex;justify-content:space-between;align-items:center}
+.gltr{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;line-height:1;background:linear-gradient(135deg,var(--gl),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.gpts{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;color:rgba(255,255,255,.25);letter-spacing:.08em;text-transform:uppercase}
+
+.gtbl{width:100%;border-collapse:collapse}
+.gtbl tr{border-top:1px solid rgba(255,255,255,.05)}
+.gtbl tr.q1{background:rgba(30,143,225,.08)}
+.gtbl tr.q2{background:rgba(30,143,225,.04)}
+.gtbl tr.q3{background:rgba(201,162,39,.04)}
+.gtbl td{padding:.42rem .6rem;font-size:.75rem}
+.tcell{display:flex;align-items:center;gap:.4rem}
+.timg{width:128px;height:122px;object-fit:cover;border-radius:2px;background:rgba(255,255,255,0.05);flex-shrink:0}
+.pbdg{width:15px;height:15px;border-radius:50%;font-size:.56rem;font-weight:700;line-height:15px;text-align:center;flex-shrink:0;font-family:'Barlow Condensed',sans-serif}
+.pb1{background:var(--gold);color:var(--bg)} .pb2{background:var(--blue);color:#fff}
+.pb3{background:rgba(255,255,255,.17);color:rgba(255,255,255,.8)} .pb4{background:rgba(255,255,255,.07);color:rgba(255,255,255,.4)}
+.tname{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:.02em}
+.tstat{font-family:'Barlow Condensed',sans-serif;font-size:1rem;color:rgba(255,255,255,.4);margin-left:auto;white-space:nowrap;display:flex;gap:.4rem;align-items:center}
+.tstat .tpts{color:var(--gl);font-weight:700;font-size:.82rem}
+
+.matches-section{border-top:1px solid rgba(255,255,255,.06);padding:.5rem .7rem .6rem}
+.matches-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.54rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:.4rem}
+.match-row{display:flex;align-items:center;gap:.3rem;margin-bottom:.28rem;font-family:'Barlow Condensed',sans-serif;font-size:1rem}
+.match-team{flex:1;text-align:right;color:rgba(255,255,255,.55);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match-team.right{text-align:left}
+.match-btns{display:flex;gap:.18rem;flex-shrink:0}
+.mbtn{padding:.14rem .28rem;border-radius:3px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.3);font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap}
+.mbtn:hover{border-color:rgba(201,162,39,.5);color:var(--gl)}
+.mbtn.active-a{background:rgba(30,143,225,.2);border-color:var(--blue);color:#9ee}
+.mbtn.active-e{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3);color:var(--w)}
+.mbtn.active-b{background:rgba(201,162,39,.2);border-color:var(--gold);color:var(--gl)}
+
+/* THIRDS */
+.tpanel{background:var(--card);border:1px solid var(--brd);border-radius:10px;padding:.9rem 1.1rem 1.1rem;margin-bottom:1.4rem}
+.plbl{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.65rem}
+.chips{display:flex;flex-wrap:wrap;gap:.38rem}
+.chip{display:inline-flex;align-items:center;gap:.32rem;padding:.27rem .55rem;border-radius:14px;font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.52);cursor:pointer;transition:all .18s;user-select:none}
+.chip:hover{border-color:rgba(201,162,39,.4);color:var(--w)}
+.chip.sel{background:rgba(201,162,39,.14);border-color:var(--gold);color:var(--gl)}
+.chip.lck{opacity:.28;pointer-events:none}
+.ccnt{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;color:rgba(255,255,255,.32);margin-top:.5rem}
+.ccnt span{color:var(--gl);font-weight:700}
+
+/* BRACKET */
+.bsec{margin-bottom:2.2rem;padding:0.5rem;border-radius:8px}
+.rlbl{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:.65rem;display:flex;justify-content:center;align-items:center;gap:0.6rem}
+.mgrid{display:flex;flex-wrap:wrap;justify-content:center;gap:.55rem}
+.mbox{width:165px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);cursor:pointer;transition:border-color .2s}
+.mbox:hover{border-color:rgba(201,162,39,.32)}
+.mbox.done{border-color:rgba(255,255,255,.17)}
+.mt{display:flex;align-items:center;gap:.4rem;padding:.36rem .52rem;font-family:'Barlow Condensed',sans-serif;font-size:.74rem;font-weight:600;color:rgba(255,255,255,.52);transition:background .14s,color .14s}
+.mt:first-child{border-bottom:1px solid rgba(255,255,255,.07)}
+.mt.win{background:rgba(201,162,39,.1);color:var(--gl)}
+.mt.tbd{color:rgba(255,255,255,.2);font-style:italic;font-weight:400}
+.mid{font-family:'Barlow Condensed',sans-serif;font-size:.55rem;color:rgba(255,255,255,.18);text-align:center;padding:.15rem 0;border-top:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02)}
+
+.ccard{text-align:center;max-width:250px;margin:1.8rem auto 0;background:linear-gradient(135deg,rgba(201,162,39,.14),rgba(201,162,39,.03));border:1.5px solid rgba(201,162,39,.28);border-radius:13px;padding:1.4rem;display:none}
+.ccard.show{display:block}
+.cicn{font-size:2.3rem;margin-bottom:.35rem}
+.clbl{font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.45rem}
+.cnm{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.04em;background:linear-gradient(135deg,var(--gl),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.csp{font-size:0.75rem;color:rgba(255,255,255,0.4);font-style:italic;margin-top:0.2rem;display:block}
+.cimg-final{width:120px;height:90px;object-fit:cover;border-radius:6px;margin:0.6rem auto;display:block;border:1px solid rgba(255,255,255,0.1)}
+
+.toast{position:fixed;bottom:1.7rem;left:50%;transform:translateX(-50%) translateY(65px);background:rgba(201,162,39,.95);color:var(--bg);font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.06em;padding:.55rem 1.4rem;border-radius:22px;z-index:9999;transition:transform .26s ease;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:600px){.ggrid{grid-template-columns:1fr 1fr}.mbox{width:148px}}
+@media(max-width:380px){.ggrid{grid-template-columns:1fr}}
+
+/* MODAL ARMAR GRUPOS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;overflow-y:auto;padding:1.5rem}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{background:#07192e;border:1px solid rgba(201,162,39,.3);border-radius:12px;padding:1.2rem;width:100%;max-width:860px;margin:auto}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gl);margin-bottom:.5rem;text-align:center}
+.modal-hint{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;color:rgba(255,255,255,.3);text-align:center;margin-bottom:.8rem;line-height:1.5}
+.modal-hint strong{color:var(--gl)}
+.modal-layout{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.modal-col-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.35rem}
+.ag-textarea{width:100%;background:#0a1e38;border:1px solid rgba(255,255,255,.12);color:var(--w);font-family:'Barlow Condensed',sans-serif;font-size:.82rem;line-height:1.7;padding:.6rem .75rem;border-radius:6px;resize:vertical;height:320px;outline:none;transition:border-color .2s;tab-size:2}
+.ag-textarea:focus{border-color:rgba(201,162,39,.5)}
+.ag-preview{height:320px;overflow-y:auto;background:#040f1e;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:.5rem .6rem}
+.ag-prev-group{margin-bottom:.55rem}
+.ag-prev-gltr{font-family:'Bebas Neue',sans-serif;font-size:.9rem;color:var(--gold);margin-bottom:.2rem}
+.ag-prev-row{display:flex;align-items:center;gap:.4rem;padding:.1rem 0;font-family:'Barlow Condensed',sans-serif;font-size:.72rem;color:rgba(255,255,255,.6)}
+.ag-prev-row.ok{color:var(--w)}
+.ag-prev-row.err{color:#ff7070}
+.ag-prev-pos{width:14px;height:14px;border-radius:50%;font-size:.52rem;font-weight:700;line-height:14px;text-align:center;flex-shrink:0;font-family:'Barlow Condensed',sans-serif}
+.modal-footer{display:flex;justify-content:flex-end;gap:.6rem;margin-top:.9rem}
+.modal-parse-err{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;color:#ff7070;margin-top:.4rem;min-height:.9rem}
+
+/* BRACKET VISUAL */
+.bracket-wrap{overflow-x:auto;padding-bottom:1rem}
+.bracket-tree{display:flex;align-items:center;gap:0;min-width:1200px}
+.bk-col{display:flex;flex-direction:column;justify-content:space-around;gap:0}
+.bk-spacer{width:18px;flex-shrink:0;position:relative;align-self:stretch}
+.bk-connector{width:100%;height:100%;position:relative}
+.bk-match{border:1px solid rgba(255,255,255,.09);border-radius:7px;background:rgba(255,255,255,.04);overflow:hidden;cursor:pointer;transition:border-color .2s;width:150px;margin:3px 0}
+.bk-match:hover{border-color:rgba(201,162,39,.35)}
+.bk-match.done{border-color:rgba(255,255,255,.18)}
+.bk-side{display:flex;align-items:center;gap:.3rem;padding:.3rem .45rem;font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:600;color:rgba(255,255,255,.5);transition:background .14s,color .14s;min-height:28px}
+.bk-side:first-child{border-bottom:1px solid rgba(255,255,255,.07)}
+.bk-side.win{background:rgba(201,162,39,.12);color:var(--gl)}
+.bk-side.tbd{color:rgba(255,255,255,.2);font-style:italic;font-weight:400}
+.bk-mid{font-family:'Barlow Condensed',sans-serif;font-size:.48rem;color:rgba(255,255,255,.15);text-align:center;padding:.1rem 0;border-top:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02)}
+.bk-round-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(201,162,39,.5);text-align:center;margin-bottom:.4rem}
+.bk-col-wrap{display:flex;flex-direction:column;align-items:center}
+.bk-final-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px}
+.bk-final-lbl{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--gold);letter-spacing:.06em;margin-bottom:.4rem;text-align:center}
+.bk-third{margin-top:10px;text-align:center}
+.bk-third-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:4px}
+svg.bk-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('groups')" id="tab-groups">🕷️ Grupos</button>
+  <button class="tab" onclick="showTab('thirds')" id="tab-thirds">📊 3ros</button>
+  <button class="tab" onclick="showTab('bracket')" id="tab-bracket">🏆 Cuadro Final</button>
+</div>
+
+<div class="sec vis" id="sec-groups">
+  <div class="ptitle">Fase de Grupos</div>
+  <p class="psub">Cargá los resultados de cada partido para calcular posiciones</p>
+  <div class="actions-bar">
+    <button class="btn-action btn-rand" onclick="randomizeAllGroups()">🔀 Mezclar Aleatoriamente</button>
+    <button class="btn-action btn-sub-action" onclick="openGroupBuilder()">✏️ Armar Grupos</button>
+    <button class="btn-action btn-reset" onclick="resetSimulator()">🗑️ Reiniciar Todo</button>
+    <button class="btn-action" onclick="exportPhaseAsImage('sec-groups', '01-fase-completa')">📸 Fase completa</button>
+    <button class="btn-action btn-sub-action" onclick="exportPhaseAsImage('grow-AF', '02-grupos-A-F')">📸 Grupos A–F</button>
+    <button class="btn-action btn-sub-action" onclick="exportPhaseAsImage('grow-GL', '03-grupos-G-L')">📸 Grupos G–L</button>
+  </div>
+  <div id="grow-AF"></div>
+  <div id="grow-GL"></div>
+  <div class="ggrid" id="ggrid" style="display:none"></div>
+</div>
+
+<div class="sec" id="sec-thirds">
+  <div class="ptitle">Terceros Clasificados</div>
+  <p class="psub">Seleccioná los 8 que avanzan al cuadro</p>
+  <div class="actions-bar">
+    <button class="btn-action" onclick="exportPhaseAsImage('sec-thirds', '02-mejores-terceros')">📸 Capturar Mejores Terceros</button>
+  </div>
+  <div class="tpanel">
+    <div class="plbl">🔢 Elegí 8 terceros</div>
+    <div class="chips" id="chips"></div>
+    <div class="ccnt" id="ccnt">Seleccionados: <span>0</span> / 8</div>
+  </div>
+</div>
+
+<div class="sec" id="sec-bracket">
+  <div class="ptitle">Cuadro Eliminatorio</div>
+  <p class="psub">Clic en un ejemplar para elegirlo ganador o capturá rondas individuales</p>
+  <div class="actions-bar">
+    <button class="btn-action" onclick="exportPhaseAsImage('sec-bracket', '03-cuadro-completo')">📸 Capturar Cuadro Completo</button>
+    <button class="btn-action btn-sub-action" onclick="exportPhaseAsImage('bsec-16avos', '04-ronda-16avos')">📸 Sólo 16avos</button>
+    <button class="btn-action btn-sub-action" onclick="exportPhaseAsImage('bsec-8vos', '05-ronda-octavos')">📸 Sólo Octavos</button>
+    <button class="btn-action btn-sub-action" onclick="exportPhaseAsImage('bsec-4tos', '06-ronda-cuartos')">📸 Sólo Cuartos</button>
+    <button class="btn-action btn-sub-action" onclick="exportPhaseAsImage('bsec-semis', '07-ronda-semifinales')">📸 Sólo Semis/Final</button>
+  </div>
+  <div id="bkt"></div>
+  <div class="ccard" id="ccard">
+    <div class="cicn">🏆</div>
+    <div class="clbl">Especie Campeona Absoluta</div>
+    <img id="cimg-final" src="" style="display:none;" alt="Campeón" crossOrigin="anonymous" />
+    <div class="cnm" id="cnm"></div>
+    <span class="csp" id="csp"></span>
+  </div>
+</div>
+
+
+<!-- MODAL ARMAR GRUPOS -->
+<div class="modal-overlay" id="modal-builder">
+  <div class="modal-box">
+    <div class="modal-title">✏️ Armar Grupos</div>
+    <div class="modal-hint">
+      Escribí los grupos en formato libre. Una línea por equipo, con el nombre del grupo al inicio.<br>
+      Ejemplo: <strong>A: A. avicularia, B. smithi, H. pulchripes, P. murinus</strong><br>
+      También podés poner puntos: <strong>A. avicularia (9)</strong> para ordenar automáticamente por puntos.
+    </div>
+    <div class="modal-layout">
+      <div>
+        <div class="modal-col-lbl">📝 Texto libre</div>
+        <textarea class="ag-textarea" id="ag-textarea" placeholder="A: A. avicularia (9), B. smithi (6), H. pulchripes (3), P. murinus (0)&#10;B: C. versicolor (9), V. chromatus (4), L. sazimai (3), L. parahybana (1)&#10;..."></textarea>
+        <div class="modal-parse-err" id="ag-parse-err"></div>
+      </div>
+      <div>
+        <div class="modal-col-lbl">👁 Vista previa</div>
+        <div class="ag-preview" id="ag-preview"><span style="color:rgba(255,255,255,.2);font-family:'Barlow Condensed',sans-serif;font-size:.7rem">Empezá a escribir para ver la vista previa…</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-action btn-reset" onclick="clearGroupTextarea()">🗑️ Vaciar</button>
+      <button class="btn-action btn-sub-action" onclick="prefillTextarea()">📋 Cargar actuales</button>
+      <button class="btn-action btn-reset" onclick="closeGroupBuilder()" style="border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6)">Cancelar</button>
+      <button class="btn-action" onclick="applyGroupBuilder()">✅ Confirmar Grupos</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TEAM_INFO = {
+  "AVI": { "name": "A. avicularia",        "wiki": "Avicularia_avicularia" },
+  "BSM": { "name": "B. smithi",            "wiki": "Brachypelma_smithi" },
+  "HPU": { "name": "H. pulchripes",        "wiki": "Harpactira_pulchripes" },
+  "PMU": { "name": "P. murinus",           "wiki": "Pterinochilus_murinus" },
+  "HMA": { "name": "H. maculata",          "wiki": "Heteroscodra_maculata" },
+  "CDA": { "name": "C. darlingi",          "wiki": "Ceratogyrus_darlingi" },
+  "GQU": { "name": "G. quirogai",          "foto": "fotos/TARANTULA (02).jpg" },
+  "CVE": { "name": "C. versicolor",        "wiki": "Caribena_versicolor" },
+  "VCH": { "name": "V. chromatus",         "wiki": "Vitalius_chromatus" },
+  "LSA": { "name": "L. sazimai",           "wiki": "Lasiocyano_sazimai" },
+  "LPA": { "name": "L. parahybana",        "wiki": "Lasiodora_parahybana" },
+  "MLI": { "name": "M. lividus",           "wiki": "Cyriopagopus_lividus" },
+  "PME": { "name": "P. metallica",         "wiki": "Poecilotheria_metallica" },
+  "PRE": { "name": "P. regalis",           "wiki": "Poecilotheria_regalis" },
+  "BSI": { "name": "B. simoroxigorum",     "wiki": "Birupes_simoroxigorum" },
+  "CFI": { "name": "C. fimbriatus",        "wiki": "Chilobrachys_fimbriatus" },
+  "XIM": { "name": "X. immanis",           "wiki": "Xenesthis_immanis" },
+  "EMU": { "name": "E. murinus",           "wiki": "Ephebopus_murinus" },
+  "TSE": { "name": "T. seladonia",         "wiki": "Typhochlaena_seladonia" },
+  "SRU": { "name": "P. rufilata",          "wiki": "Poecilotheria_rufilata" },
+  "BAL": { "name": "B. albiceps",          "wiki": "Brachypelma_albiceps" },
+  "TVA": { "name": "T. vagans",            "wiki": "Tliltocatl_vagans" },
+  "NTR": { "name": "N. tripepii",          "wiki": "Nhandu_tripepii" },
+  "DDI": { "name": "D. diamantinensis",    "wiki": "Dolichothele_diamantinensis" },
+  "ACH": { "name": "A. chacoana",          "wiki": "Acanthoscurria_chacoana" },
+  "CDV": { "name": "Cilantica devamatha",           "foto": "fotos/TARANTULA (1).jpg" },
+  "PCA": { "name": "Phormictopus cancerides",        "foto": "fotos/TARANTULA (2).jpg" },
+  "AGE": { "name": "Acanthoscurria geniculata",      "foto": "fotos/TARANTULA (3).jpg" },
+  "CEL": { "name": "Cyriocosmus elegans",            "foto": "fotos/TARANTULA (4).jpg" },
+  "OVI": { "name": "O. violaceopes",                 "foto": "fotos/TARANTULA (5).jpg" },
+  "HGI": { "name": "Hysterocrates gigas",            "foto": "fotos/TARANTULA (01).jpg" },
+  "ETR": { "name": "Euathlus truculentus Green",     "foto": "fotos/TARANTULA (7).jpg" },
+  "TBL": { "name": "Theraphosa blondi",              "foto": "fotos/TARANTULA (8).jpg" },
+  "GPU": { "name": "Grammostola pulchripes",         "foto": "fotos/TARANTULA (6).jpg" },
+  "CCY": { "name": "Chromatopelma cyaneopubescens",  "foto": "fotos/TARANTULA (9).jpg" },
+  "TVI": { "name": "Tapinauchenius violaceus",       "foto": "fotos/TARANTULA (10).jpg" },
+  "DPE": { "name": "Davus pentaloris",               "foto": "fotos/TARANTULA (11).jpg" },
+  "ARU": { "name": "Aspinochilus rufus",             "foto": "fotos/TARANTULA (12).jpg" },
+  "CNA": { "name": "Chilobrachys natanicharum",      "foto": "fotos/TARANTULA (13).jpg" },
+  "PIR": { "name": "Psalmopoeus irminia",            "foto": "fotos/TARANTULA (14).jpg" },
+  "BEM": { "name": "Brachypelma emilia",             "foto": "fotos/TARANTULA (15).jpg" },
+  "GRO": { "name": "Grammostola rosea",              "foto": "fotos/TARANTULA (16).jpg" },
+  "MBA": { "name": "Monocentropus balfouri",         "foto": "fotos/TARANTULA (17).jpg" },
+  "OAU": { "name": "Ornithoctonus aureotibialis",    "foto": "fotos/TARANTULA (18).jpg" },
+  "OHC": { "name": "Ornithoctoninae sp. Ho Chi Minh","foto": "fotos/TARANTULA (19).jpg" },
+  "PHA": { "name": "Phormingochilus hatihati",       "foto": "fotos/TARANTULA (22).jpg" },
+  "PSO": { "name": "Pamphobeteus sp. Solaris",       "foto": "fotos/TARANTULA (20).jpg" },
+  "PAN": { "name": "Pamphobeteus antinous",          "foto": "fotos/TARANTULA (21).jpg" }
+};
+
+const ALL_IDS = Object.keys(TEAM_INFO);
+const GROUP_KEYS = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+// GS: grupos, MR: resultados de partidos, SEL3: terceros elegidos, KW/KL: bracket
+let GS = {}, MR = {}, SEL3 = [], KW = {}, KL = {};
+
+// MR[g][matchKey] = 'a' (gana local) | 'e' (empate) | 'b' (gana visitante)
+// matchKey = "idA_idB"
+
+function saveState() {
+  localStorage.setItem("tarantula_GS", JSON.stringify(GS));
+  localStorage.setItem("tarantula_MR", JSON.stringify(MR));
+  localStorage.setItem("tarantula_SEL3", JSON.stringify(SEL3));
+  localStorage.setItem("tarantula_KW", JSON.stringify(KW));
+  localStorage.setItem("tarantula_KL", JSON.stringify(KL));
+  localStorage.setItem("tarantula_GV", JSON.stringify(GV));
+}
+
+function loadState() {
+  const sGS   = localStorage.getItem("tarantula_GS");
+  const sMR   = localStorage.getItem("tarantula_MR");
+  const sSEL3 = localStorage.getItem("tarantula_SEL3");
+  const sKW   = localStorage.getItem("tarantula_KW");
+  const sKL   = localStorage.getItem("tarantula_KL");
+
+  if (sGS)   GS   = JSON.parse(sGS);
+  if (sMR)   MR   = JSON.parse(sMR);
+  if (sSEL3) SEL3 = JSON.parse(sSEL3);
+  if (sKW)   KW   = JSON.parse(sKW);
+  if (sKL)   KL   = JSON.parse(sKL);
+  const sGV = localStorage.getItem("tarantula_GV");
+  if (sGV)   GV   = JSON.parse(sGV);
+
+  if (!sGS || Object.keys(GS).length === 0) {
+    GROUP_KEYS.forEach(g => { GS[g] = []; MR[g] = {}; });
+    randomizeAllGroups(false);
+  }
+}
+
+function resetSimulator() {
+  if (confirm("¿Estás seguro de que querés borrar todo el fixture y empezar de cero?")) {
+    localStorage.clear();
+    GS = {}; MR = {}; SEL3 = []; KW = {}; KL = {}; GV = {};
+    GROUP_KEYS.forEach(g => { GS[g] = []; MR[g] = {}; });
+    randomizeAllGroups(true);
+    showToast("Simulador reiniciado de cero.");
+  }
+}
+
+// VOTOS por equipo: GV[id] = número de votos (0-128)
+let GV = {};
+
+// Tabla de posiciones por votos
+function calcStandings(g) {
+  const ids = GS[g] || [];
+  return ids.slice().sort((a, b) => {
+    const va = GV[a] ?? 0, vb = GV[b] ?? 0;
+    if (vb !== va) return vb - va;
+    return ids.indexOf(a) - ids.indexOf(b);
+  }).map(id => ({ id, pts: GV[id] ?? 0 }));
+}
+
+const p1 = g => calcStandings(g)[0].id;
+const p2 = g => calcStandings(g)[1].id;
+const p3 = g => calcStandings(g)[2].id;
+
+// Wiki image cache
+const imgCache = {};
+async function fetchWikiImg(wiki) {
+  if (imgCache[wiki] !== undefined) return imgCache[wiki];
+  try {
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${wiki}`);
+    const d = await r.json();
+    imgCache[wiki] = d.thumbnail?.source || null;
+  } catch { imgCache[wiki] = null; }
+  return imgCache[wiki];
+}
+
+function getSpecimenThumb(t) {
+  const uid = `wi-${Math.random().toString(36).slice(2)}`;
+  if (t.foto) {
+    return `<img src="${t.foto}" class="timg" alt="${t.name}" onerror="this.style.opacity='0.15'" />`;
+  }
+  const el = `<img id="${uid}" src="" class="timg" crossOrigin="anonymous" style="display:none" alt="" />`;
+  if (t.wiki) {
+    fetchWikiImg(t.wiki).then(url => {
+      const img = document.getElementById(uid);
+      if (img && url) { img.src = url; img.style.display = ''; }
+    });
+  }
+  return el;
+}
+
+const T = id => TEAM_INFO[id] || { name: id, wiki: "" };
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2300);
+}
+
+function randomizeAllGroups(notify = true) {
+  const shuffled = [...ALL_IDS];
+  for (let i = shuffled.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  GROUP_KEYS.forEach(g => { GS[g] = []; MR[g] = {}; });
+  SEL3.length = 0;
+  Object.keys(KW).forEach(k => delete KW[k]);
+  Object.keys(KL).forEach(k => delete KL[k]);
+
+  let idx = 0;
+  GROUP_KEYS.forEach(g => {
+    for (let m = 0; m < 4; m++) { GS[g].push(shuffled[idx]); idx++; }
+  });
+
+  saveState();
+  if (notify) showToast("¡Grupos redistribuidos aleatoriamente!");
+  renderGroups();
+  if (document.getElementById('sec-thirds').classList.contains('vis')) renderThirds();
+  if (document.getElementById('sec-bracket').classList.contains('vis')) renderBracket();
+}
+
+function showTab(t) {
+  ['groups','thirds','bracket'].forEach(s => {
+    document.getElementById('sec-'+s).classList.toggle('vis', s===t);
+    document.getElementById('tab-'+s).classList.toggle('active', s===t);
+  });
+  if (t==='thirds')  renderThirds();
+  if (t==='bracket') renderBracket();
+}
+
+function renderGroups() {
+  const HALVES = [
+    { ids: ['A','B','C','D','E','F'], containerId: 'grow-AF' },
+    { ids: ['G','H','I','J','K','L'], containerId: 'grow-GL' },
+  ];
+  HALVES.forEach(({ ids, containerId }) => {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    // rows of 3 groups each
+    const rows = [ids.slice(0,3), ids.slice(3,6)];
+    rows.forEach(trio => {
+      const rowId = 'grow-row-' + trio.join('');
+      const rowWrap = document.createElement('div');
+      rowWrap.id = rowId;
+      rowWrap.style.cssText = 'margin-bottom:.7rem';
+      // per-row capture button
+      const rowHdr = document.createElement('div');
+      rowHdr.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:.3rem;gap:.4rem';
+      rowHdr.innerHTML = trio.map(g =>
+        `<button class="btn-mini-capt" onclick="exportPhaseAsImage('gc-${g}','grupo-${g}')">📸 Grupo ${g}</button>`
+      ).join('') +
+      `<button class="btn-mini-capt" onclick="exportPhaseAsImage('${rowId}','grupos-${trio.join('')}')">📸 Grupos ${trio.join(', ')}</button>`;
+      rowWrap.appendChild(rowHdr);
+      const grid = document.createElement('div');
+      grid.className = 'ggrid';
+      trio.forEach(g => {
+        const card = document.createElement('div'); card.className = 'gcard'; card.id = 'gc-'+g;
+        card.innerHTML = buildGroupHTML(g);
+        grid.appendChild(card);
+      });
+      rowWrap.appendChild(grid);
+      container.appendChild(rowWrap);
+    });
+  });
+}
+
+function buildGroupHTML(g) {
+  const standings = calcStandings(g);
+  const rowClasses = ['q1','q2','q3',''];
+
+  const rows = standings.map((s, i) => {
+    const t = T(s.id);
+    return `<tr class="${rowClasses[i]}">
+      <td>
+        <div class="tcell">
+          <span class="pbdg pb${i+1}">${i+1}</span>
+          ${getSpecimenThumb(t)}
+          <span class="tname">${t.name}</span>
+          <span class="tstat">
+            <input type="number" min="0" max="128" value="${s.pts}"
+              style="width:44px;background:#0a1e38;border:1px solid rgba(255,255,255,.15);border-radius:4px;color:var(--gl);font-family:'Barlow Condensed',sans-serif;font-size:.82rem;font-weight:700;text-align:center;padding:.1rem .2rem;outline:none;"
+              oninput="setVotos('${s.id}', this.value, '${g}')" />
+            <span style="font-size:.65rem;color:rgba(255,255,255,.3)">votos</span>
+          </span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div class="ghdr">
+      <span class="gltr">Grupo ${g}</span>
+      <span class="gpts">votos / 128</span>
+    </div>
+    <table class="gtbl"><tbody>${rows}</tbody></table>`;
+}
+
+function setVotos(id, val, g) {
+  let n = parseInt(val);
+  if (isNaN(n)) n = 0;
+  n = Math.max(0, Math.min(128, n));
+  GV[id] = n;
+  saveState();
+  // Re-sort and re-render the card
+  const card = document.getElementById('gc-'+g);
+  if (card) card.innerHTML = buildGroupHTML(g);
+  if (document.getElementById('sec-thirds').classList.contains('vis')) renderThirds();
+}
+
+// THIRDS
+function renderThirds() {
+  const all = GROUP_KEYS.map(g => ({ id: p3(g), g }));
+  document.getElementById('chips').innerHTML = all.map(({id, g}) => {
+    const t = T(id); const isSel = SEL3.includes(id); const locked = !isSel && SEL3.length >= 8;
+    return `<div class="chip${isSel?' sel':''}${locked?' lck':''}" onclick="toggleT3('${id}')">
+      ${getSpecimenThumb(t)}
+      <strong style="font-size:0.7rem">${t.name}</strong>
+      <span style="opacity:.4;font-size:.62rem;margin-left:4px">G${g}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('ccnt').innerHTML = `Seleccionados: <span>${SEL3.length}</span> / 8`;
+}
+
+function toggleT3(id) {
+  const i = SEL3.indexOf(id);
+  if (i > -1) { SEL3.splice(i,1); showToast('Removido de mejores terceros'); }
+  else {
+    if (SEL3.length >= 8) { showToast('Ya tenés 8 seleccionados'); return; }
+    SEL3.push(id); showToast(`Clasificado al cuadro (${SEL3.length}/8)`);
+  }
+  saveState();
+  renderThirds();
+}
+
+// BRACKET VISUAL TREE ─────────────────────────────────────────────────────────
+
+function renderBracket() {
+  t3cursor = 0;
+  const cont = document.getElementById('bkt'); cont.innerHTML = '';
+
+  // Pre-resolve all slots
+  const resolved = {};
+  [...R32,...R16,...QF,...SF,FINAL,THIRD_M].forEach(m => {
+    resolved[m.id] = { a: resolveSlot(m.a), b: resolveSlot(m.b) };
+  });
+
+  // Left side: p74,p77,p79,p80 → p89,p92 → p97 → p101
+  // Right side: p76,p78,p80... mirrors
+  // We'll build a full visual bracket mirroring the image layout:
+  // [R32 left 8] [R16 left 4] [QF left 2] [SF left] [FINAL] [SF right] [QF right 2] [R16 right 4] [R32 right 8]
+
+  const leftR32  = [R32[0],R32[1],R32[2],R32[3],R32[4],R32[5],R32[6],R32[7]];
+  const rightR32 = [R32[8],R32[9],R32[10],R32[11],R32[12],R32[13],R32[14],R32[15]];
+  const leftR16  = [R16[0],R16[1],R16[2],R16[3]];
+  const rightR16 = [R16[4],R16[5],R16[6],R16[7]];
+  const leftQF   = [QF[0],QF[1]];
+  const rightQF  = [QF[2],QF[3]];
+  const leftSF   = [SF[0]];
+  const rightSF  = [SF[1]];
+
+  const wrap = document.createElement('div');
+  wrap.className = 'bracket-wrap';
+
+  const tree = document.createElement('div');
+  tree.className = 'bracket-tree';
+  tree.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:0;padding:1rem 0;';
+
+  // Helper: build a column of matches
+  function makeCol(matches, lbl) {
+    const colWrap = document.createElement('div');
+    colWrap.className = 'bk-col-wrap';
+    colWrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
+    if (lbl) {
+      const l = document.createElement('div');
+      l.className = 'bk-round-lbl';
+      l.textContent = lbl;
+      colWrap.appendChild(l);
+    }
+    const col = document.createElement('div');
+    col.className = 'bk-col';
+    col.style.cssText = 'display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:4px;';
+    matches.forEach(m => {
+      const ra = resolved[m.id];
+      col.appendChild(buildBkMatch(m, ra.a, ra.b));
+    });
+    colWrap.appendChild(col);
+    return colWrap;
+  }
+
+  // Helper: spacer with SVG connector lines
+  function makeLines(nLeft, nRight, side) {
+    const sp = document.createElement('div');
+    sp.style.cssText = 'width:22px;flex-shrink:0;align-self:stretch;position:relative;';
+    // We'll draw lines via SVG dynamically after layout
+    sp.dataset.lines = JSON.stringify({nLeft, nRight, side});
+    return sp;
+  }
+
+  // Center final section
+  const centerDiv = document.createElement('div');
+  centerDiv.className = 'bk-final-center';
+  centerDiv.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:0 8px;';
+
+  const trophyLbl = document.createElement('div');
+  trophyLbl.className = 'bk-final-lbl';
+  trophyLbl.textContent = '⚽ FINAL';
+  centerDiv.appendChild(trophyLbl);
+
+  const finalBox = buildBkMatch(FINAL, resolved[FINAL.id].a, resolved[FINAL.id].b);
+  finalBox.style.width = '160px';
+  centerDiv.appendChild(finalBox);
+
+  const thirdDiv = document.createElement('div');
+  thirdDiv.className = 'bk-third';
+  const thirdLbl = document.createElement('div');
+  thirdLbl.className = 'bk-third-lbl';
+  thirdLbl.textContent = '3er Puesto';
+  thirdDiv.appendChild(thirdLbl);
+  const thirdBox = buildBkMatch(THIRD_M, resolved[THIRD_M.id].a, resolved[THIRD_M.id].b);
+  thirdBox.style.width = '160px';
+  thirdDiv.appendChild(thirdBox);
+  centerDiv.appendChild(thirdDiv);
+
+  // Assemble tree
+  tree.appendChild(makeCol(leftR32,  '16avos'));
+  tree.appendChild(makeLines(8,4,'right'));
+  tree.appendChild(makeCol(leftR16,  'Octavos'));
+  tree.appendChild(makeLines(4,2,'right'));
+  tree.appendChild(makeCol(leftQF,   'Cuartos'));
+  tree.appendChild(makeLines(2,1,'right'));
+  tree.appendChild(makeCol(leftSF,   'Semis'));
+  tree.appendChild(makeLines(1,1,'right'));
+  tree.appendChild(centerDiv);
+  tree.appendChild(makeLines(1,1,'left'));
+  tree.appendChild(makeCol(rightSF,  'Semis'));
+  tree.appendChild(makeLines(1,2,'left'));
+  tree.appendChild(makeCol(rightQF,  'Cuartos'));
+  tree.appendChild(makeLines(2,4,'left'));
+  tree.appendChild(makeCol(rightR16, 'Octavos'));
+  tree.appendChild(makeLines(4,8,'left'));
+  tree.appendChild(makeCol(rightR32, '16avos'));
+
+  wrap.appendChild(tree);
+  cont.appendChild(wrap);
+
+  // Draw connector lines after DOM is in place
+  requestAnimationFrame(() => drawBracketLines(tree));
+
+  updateChamp();
+}
+
+function drawBracketLines(tree) {
+  // For each spacer, draw SVG lines connecting pairs of matches on left to matches on right
+  const spacers = tree.querySelectorAll('[data-lines]');
+  spacers.forEach(sp => {
+    const { nLeft, nRight, side } = JSON.parse(sp.dataset.lines);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;';
+    svg.setAttribute('preserveAspectRatio','none');
+    sp.style.position = 'relative';
+    sp.appendChild(svg);
+
+    const spRect = sp.getBoundingClientRect();
+    const treeRect = tree.getBoundingClientRect();
+
+    // Find sibling columns
+    const children = Array.from(tree.children);
+    const idx = children.indexOf(sp);
+    const leftCol = children[idx-1];
+    const rightCol = children[idx+1];
+    if (!leftCol || !rightCol) return;
+
+    const leftMatches = leftCol.querySelectorAll('.bk-match');
+    const rightMatches = rightCol.querySelectorAll('.bk-match');
+
+    // Each right match pairs with 2 left matches
+    const ratio = leftMatches.length / rightMatches.length;
+
+    rightMatches.forEach((rm, ri) => {
+      const rmRect = rm.getBoundingClientRect();
+      const ryMid = rmRect.top + rmRect.height/2 - spRect.top;
+      const rxFrom = side === 'right' ? spRect.width : 0;
+      const rxTo   = side === 'right' ? 0 : spRect.width;
+
+      // draw line from right match to midpoint
+      // then from midpoint to each left match
+      const lmGroup = Array.from(leftMatches).slice(ri*ratio, (ri+1)*ratio);
+      if (!lmGroup.length) return;
+
+      const midX = spRect.width / 2;
+
+      lmGroup.forEach(lm => {
+        const lmRect = lm.getBoundingClientRect();
+        const lyMid = lmRect.top + lmRect.height/2 - spRect.top;
+        const lxFrom = side === 'right' ? spRect.width : 0;
+        const lxTo   = side === 'right' ? 0 : spRect.width;
+
+        // horizontal from left match to midX
+        const path1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+        const x1 = lxFrom, y1 = lyMid, xm = midX;
+        path1.setAttribute('d', `M${x1},${y1} L${xm},${y1} L${xm},${ryMid} L${rxFrom},${ryMid}`);
+        path1.setAttribute('fill','none');
+        path1.setAttribute('stroke','rgba(255,255,255,0.1)');
+        path1.setAttribute('stroke-width','1');
+        svg.appendChild(path1);
+      });
+    });
+  });
+}
+
+function buildBkMatch(m, tA, tB) {
+  const win = KW[m.id];
+  const box = document.createElement('div');
+  box.className = 'bk-match'+(win?' done':'');
+  box.id = 'mb-'+m.id;
+
+  const sideA = document.createElement('div');
+  sideA.className = 'bk-side'+(win===tA?' win':'')+((!tA)?' tbd':'');
+  sideA.onclick = () => pick(m.id, tA||'', tB||'', 'a');
+  sideA.innerHTML = bkSlotHtml(m.a, tA);
+
+  const sideB = document.createElement('div');
+  sideB.className = 'bk-side'+(win===tB?' win':'')+((!tB)?' tbd':'');
+  sideB.onclick = () => pick(m.id, tA||'', tB||'', 'b');
+  sideB.innerHTML = bkSlotHtml(m.b, tB);
+
+  const mid = document.createElement('div');
+  mid.className = 'bk-mid';
+  mid.textContent = m.id.toUpperCase();
+
+  box.appendChild(sideA);
+  box.appendChild(sideB);
+  box.appendChild(mid);
+  return box;
+}
+
+function bkSlotHtml(desc, id) {
+  if (id) {
+    const t = T(id);
+    return `<span style="font-weight:600;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;display:block">${t.name}</span>`;
+  }
+  if (desc==='T3') return '<span>3ro clasif.</span>';
+  if (/^[12][A-L]$/.test(desc)) return `<span>${desc[0]==='1'?'1°':'2°'} Grp ${desc[1]}</span>`;
+  if (desc.startsWith('Wp')) return `<span>G.${desc.slice(1).toUpperCase()}</span>`;
+  if (desc.startsWith('Lp')) return `<span>P.${desc.slice(1).toUpperCase()}</span>`;
+  return '<span>—</span>';
+}
+const R32 = [
+  {id:"p73", a:"2A", b:"2B"}, {id:"p74", a:"1E", b:"T3"}, {id:"p75", a:"1F", b:"2C"}, {id:"p76", a:"1C", b:"2F"},
+  {id:"p77", a:"1I", b:"T3"}, {id:"p78", a:"2E", b:"2I"}, {id:"p79", a:"1A", b:"T3"}, {id:"p80", a:"1L", b:"T3"},
+  {id:"p81", a:"1D", b:"T3"}, {id:"p82", a:"1G", b:"T3"}, {id:"p83", a:"2K", b:"2L"}, {id:"p84", a:"1H", b:"2J"},
+  {id:"p85", a:"1B", b:"T3"}, {id:"p86", a:"1J", b:"2H"}, {id:"p87", a:"1K", b:"T3"}, {id:"p88", a:"2D", b:"2G"},
+];
+const R16 = [
+  {id:"p89", a:"Wp74", b:"Wp77"}, {id:"p90", a:"Wp73", b:"Wp75"}, {id:"p91", a:"Wp76", b:"Wp78"}, {id:"p92", a:"Wp79", b:"Wp80"},
+  {id:"p93", a:"Wp83", b:"Wp84"}, {id:"p94", a:"Wp81", b:"Wp82"}, {id:"p95", a:"Wp86", b:"Wp88"}, {id:"p96", a:"Wp85", b:"Wp87"},
+];
+const QF = [
+  {id:"p97",  a:"Wp89", b:"Wp90"}, {id:"p98",  a:"Wp93", b:"Wp94"},
+  {id:"p99",  a:"Wp91", b:"Wp92"}, {id:"p100", a:"Wp95", b:"Wp96"},
+];
+const SF = [
+  {id:"p101", a:"Wp97", b:"Wp98"}, {id:"p102", a:"Wp99", b:"Wp100"},
+];
+const FINAL   = {id:"p104", a:"Wp101", b:"Wp102"};
+const THIRD_M = {id:"p103", a:"Lp101", b:"Lp102"};
+
+let t3cursor = 0;
+function resolveSlot(desc) {
+  if (!desc) return null;
+  if (/^1[A-L]$/.test(desc)) return p1(desc[1]);
+  if (/^2[A-L]$/.test(desc)) return p2(desc[1]);
+  if (desc === 'T3') { const v = SEL3[t3cursor]||null; t3cursor++; return v; }
+  if (desc.startsWith('Wp')) return KW[desc.slice(1)]||null;
+  if (desc.startsWith('Lp')) return KL[desc.slice(1)]||null;
+  return null;
+}
+
+function pick(mid, tA, tB, side) {
+  const win = side==='a'?tA:tB, los = side==='a'?tB:tA;
+  if (!win) { showToast('Definición pendiente'); return; }
+  if (KW[mid]===win) { delete KW[mid]; delete KL[mid]; cascade(mid); showToast('Ganador removido'); }
+  else { KW[mid]=win; KL[mid]=los; showToast('Avanza ejemplar ✓'); }
+  saveState();
+  renderBracket();
+}
+
+function cascade(mid) {
+  const dW='Wp'+mid, dL='Lp'+mid;
+  [...R16,...QF,...SF,FINAL,THIRD_M].forEach(m => {
+    if (m.a===dW||m.b===dW||m.a===dL||m.b===dL) {
+      if (KW[m.id]) { cascade(m.id); delete KW[m.id]; delete KL[m.id]; }
+    }
+  });
+}
+
+function updateChamp() {
+  const id = KW['p104'];
+  const card = document.getElementById('ccard');
+  const imgFinal = document.getElementById('cimg-final');
+  if (id) {
+    const t = T(id);
+    document.getElementById('cnm').textContent = id.toUpperCase();
+    document.getElementById('csp').textContent = t.name;
+    if (t.foto) {
+      imgFinal.src = t.foto;
+      imgFinal.style.display = 'block';
+    } else if (t.wiki) {
+      fetchWikiImg(t.wiki).then(url => {
+        if (url) { imgFinal.src = url; imgFinal.style.display = 'block'; }
+      });
+    } else {
+      imgFinal.style.display = 'none';
+    }
+    card.classList.add('show');
+  } else { card.classList.remove('show'); }
+}
+
+function exportPhaseAsImage(sectionId, fileName) {
+  showToast("Generando captura de pantalla...");
+  const target = document.getElementById(sectionId);
+  if (!target) { showToast("Error: Sección no encontrada"); return; }
+  const actionBars  = target.querySelectorAll('.actions-bar');
+  const miniButtons = target.querySelectorAll('.btn-mini-capt');
+  actionBars.forEach(el  => el.style.visibility = 'hidden');
+  miniButtons.forEach(el => el.style.visibility = 'hidden');
+  html2canvas(target, { backgroundColor:'#020C18', useCORS:true, allowTaint:false, scale:2, logging:false }).then(canvas => {
+    actionBars.forEach(el  => el.style.visibility = 'visible');
+    miniButtons.forEach(el => el.style.visibility = 'visible');
+    try {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png'); a.download = `${fileName}.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      showToast("📸 ¡Captura guardada con éxito!");
+    } catch(e) { console.error(e); showToast("Error procesando imagen externa."); }
+  }).catch(err => {
+    console.error(err);
+    actionBars.forEach(el  => el.style.visibility = 'visible');
+    miniButtons.forEach(el => el.style.visibility = 'visible');
+    showToast("Error en renderización.");
+  });
+}
+
+
+// ── GROUP BUILDER (texto libre) ──────────────────────────────────────────────
+
+// Construye un mapa nombre→id para búsqueda fuzzy
+function buildNameMap() {
+  const map = [];
+  Object.entries(TEAM_INFO).forEach(([id, t]) => {
+    map.push({ id, name: t.name.toLowerCase() });
+  });
+  return map;
+}
+
+function findTeamByName(raw, nameMap) {
+  const q = raw.toLowerCase().trim();
+  // exact
+  let found = nameMap.find(e => e.name === q);
+  if (found) return found.id;
+  // starts with
+  found = nameMap.find(e => e.name.startsWith(q));
+  if (found) return found.id;
+  // contains
+  found = nameMap.find(e => e.name.includes(q));
+  if (found) return found.id;
+  // first word match
+  const firstWord = q.split(' ')[0];
+  found = nameMap.find(e => e.name.includes(firstWord) && firstWord.length > 2);
+  if (found) return found.id;
+  return null;
+}
+
+// Parsea el textarea. Devuelve { groups: {A:[{id,pts}],...}, errors:[] }
+function parseGroupText(text) {
+  const nameMap = buildNameMap();
+  const groups = {};
+  const errors = [];
+
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  lines.forEach((line, li) => {
+    // Formato: "A: equipo1 (pts), equipo2 (pts), ..."
+    // o       "A: equipo1, equipo2, ..." sin puntos
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) { errors.push(`Línea ${li+1}: falta "Grupo X:" al inicio`); return; }
+    const grpRaw = line.slice(0, colonIdx).trim().toUpperCase().replace(/GRUPO\s*/,'');
+    if (!GROUP_KEYS.includes(grpRaw)) { errors.push(`Línea ${li+1}: letra de grupo inválida (${grpRaw})`); return; }
+    const rest = line.slice(colonIdx+1);
+    // Split por coma
+    const parts = rest.split(',').map(p => p.trim()).filter(Boolean);
+    const entries = [];
+    parts.forEach(part => {
+      // buscar puntos entre paréntesis al final: "Nombre (9)"
+      const ptMatch = part.match(/^(.*?)\s*\((\d+)\)\s*$/);
+      let name, pts;
+      if (ptMatch) { name = ptMatch[1].trim(); pts = parseInt(ptMatch[2]); }
+      else { name = part.trim(); pts = null; }
+      const id = findTeamByName(name, nameMap);
+      entries.push({ raw: name, id, pts });
+    });
+    groups[grpRaw] = entries;
+  });
+
+  return { groups, errors };
+}
+
+function renderPreview(text) {
+  const prev = document.getElementById('ag-preview');
+  const errEl = document.getElementById('ag-parse-err');
+  if (!text.trim()) {
+    prev.innerHTML = '<span style="color:rgba(255,255,255,.2);font-family:\'Barlow Condensed\',sans-serif;font-size:.7rem">Empezá a escribir…</span>';
+    errEl.textContent = '';
+    return;
+  }
+  const { groups, errors } = parseGroupText(text);
+  errEl.textContent = errors.slice(0,3).join(' | ');
+
+  const posColors = ['pb1','pb2','pb3','pb4'];
+  let html = '';
+
+  GROUP_KEYS.forEach(g => {
+    const entries = groups[g];
+    if (!entries || !entries.length) return;
+    // sort by pts if any have pts
+    const hasPts = entries.some(e => e.pts !== null);
+    if (hasPts) entries.sort((a,b) => (b.pts??0)-(a.pts??0));
+    html += `<div class="ag-prev-group"><div class="ag-prev-gltr">Grupo ${g}</div>`;
+    entries.forEach((e, i) => {
+      const cls = e.id ? 'ok' : 'err';
+      const lbl = e.id ? T(e.id).name : `❌ "${e.raw}"`;
+      const ptsTxt = e.pts !== null ? ` <span style="color:var(--gold);margin-left:auto">${e.pts}pts</span>` : '';
+      html += `<div class="ag-prev-row ${cls}"><span class="ag-prev-pos ${posColors[i]||'pb4'}">${i+1}</span>${lbl}${ptsTxt}</div>`;
+    });
+    html += '</div>';
+  });
+  prev.innerHTML = html || '<span style="color:rgba(255,255,255,.2);font-size:.7rem">Nada reconocido aún…</span>';
+}
+
+function openGroupBuilder() {
+  document.getElementById('ag-parse-err').textContent = '';
+  document.getElementById('ag-preview').innerHTML = '<span style="color:rgba(255,255,255,.2);font-family:\'Barlow Condensed\',sans-serif;font-size:.7rem">Empezá a escribir…</span>';
+  // No pre-cargar; dejar limpio para que el usuario escriba
+  const ta = document.getElementById('ag-textarea');
+  // setup live preview
+  ta.oninput = () => renderPreview(ta.value);
+  document.getElementById('modal-builder').classList.add('open');
+}
+
+function closeGroupBuilder() {
+  document.getElementById('modal-builder').classList.remove('open');
+}
+
+function clearGroupTextarea() {
+  document.getElementById('ag-textarea').value = '';
+  document.getElementById('ag-preview').innerHTML = '<span style="color:rgba(255,255,255,.2);font-family:\'Barlow Condensed\',sans-serif;font-size:.7rem">Empezá a escribir…</span>';
+  document.getElementById('ag-parse-err').textContent = '';
+}
+
+function prefillTextarea() {
+  const lines = GROUP_KEYS.map(g => {
+    const ids = GS[g] || [];
+    if (!ids.length) return '';
+    const st = calcStandings(g);
+    const parts = st.map(s => `${T(s.id).name} (${GV[s.id] ?? 0})`).join(', ');
+    return `${g}: ${parts}`;
+  }).filter(Boolean);
+  const ta = document.getElementById('ag-textarea');
+  ta.value = lines.join('\n');
+  renderPreview(ta.value);
+}
+
+function applyGroupBuilder() {
+  const text = document.getElementById('ag-textarea').value;
+  const { groups, errors } = parseGroupText(text);
+
+  // Validar: todos los grupos de A a L tienen exactamente 4 equipos válidos y sin duplicados
+  const allIds = [];
+  for (const g of GROUP_KEYS) {
+    const entries = groups[g];
+    if (!entries || entries.length !== 4) { showToast(`Grupo ${g}: necesitás exactamente 4 equipos`); return; }
+    for (const e of entries) {
+      if (!e.id) { showToast(`Grupo ${g}: no reconozco "${e.raw}"`); return; }
+      if (allIds.includes(e.id)) { showToast(`"${T(e.id).name}" aparece duplicado`); return; }
+      allIds.push(e.id);
+    }
+  }
+
+  // HasPts: ordenar por puntos antes de aplicar
+  GROUP_KEYS.forEach(g => {
+    const entries = groups[g];
+    const hasPts = entries.some(e => e.pts !== null);
+    if (hasPts) entries.sort((a,b) => (b.pts??0)-(a.pts??0));
+    GS[g] = entries.map(e => e.id);
+    MR[g] = {};
+    // Guardar votos si vienen del textarea
+    entries.forEach(e => { if (e.pts !== null) GV[e.id] = Math.max(0, Math.min(128, e.pts)); });
+  });
+  SEL3.length = 0;
+  Object.keys(KW).forEach(k => delete KW[k]);
+  Object.keys(KL).forEach(k => delete KL[k]);
+  saveState();
+  closeGroupBuilder();
+  renderGroups();
+  showToast('✅ Grupos guardados');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  renderGroups();
+});
+</script>
+</body>
+</html>
